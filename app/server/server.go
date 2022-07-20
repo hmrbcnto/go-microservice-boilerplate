@@ -12,6 +12,7 @@ import (
 
 	"github.com/gorilla/mux"
 	router "github.com/hmrbcnto/go-net-http/app/server/routes"
+	"github.com/hmrbcnto/go-net-http/helpers"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -26,6 +27,7 @@ type Server struct {
 
 func New(db *mongo.Client) Server {
 	mux := mux.NewRouter()
+	mux.Use(helpers.LogRequestHandler)
 	return Server{
 		Db:  db,
 		Mux: mux,

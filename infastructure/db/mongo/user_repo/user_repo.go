@@ -16,26 +16,24 @@ type UserRepo interface {
 }
 
 type userRepo struct {
-	db     *mongo.Collection
-	ctx    context.Context
-	cancel context.CancelFunc
+	db *mongo.Collection
 }
 
 func NewRepo(db *mongo.Client) UserRepo {
-	// Creating context
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
-
 	return &userRepo{
-		db:     db.Database("leniApi").Collection("users"),
-		ctx:    ctx,
-		cancel: cancel,
+		db: db.Database("leniApi").Collection("users"),
 	}
 }
 
 func (ur *userRepo) CreateUser(user *entities.User) (*entities.User, error) {
 
+	// Creating context
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+
+	defer cancel()
+
 	// Creating user
-	insertionResult, err := ur.db.InsertOne(ur.ctx, user)
+	insertionResult, err := ur.db.InsertOne(ctx, user)
 
 	if err != nil {
 		return nil, err
@@ -45,7 +43,7 @@ func (ur *userRepo) CreateUser(user *entities.User) (*entities.User, error) {
 	filter := bson.D{{Key: "_id", Value: insertionResult.InsertedID}}
 
 	// Query
-	createdRecord := ur.db.FindOne(ur.ctx, filter)
+	createdRecord := ur.db.FindOne(ctx, filter)
 
 	// Decode to user entity
 	createdUser := &entities.User{}
@@ -57,11 +55,16 @@ func (ur *userRepo) CreateUser(user *entities.User) (*entities.User, error) {
 
 func (ur *userRepo) GetAllUsers() ([]entities.User, error) {
 
+	// Creating context
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+
+	defer cancel()
+
 	/// Getting all users
 	// Creating query
 	query := bson.D{{}}
 
-	cursor, err := ur.db.Find(ur.ctx, query)
+	cursor, err := ur.db.Find(ctx, query)
 
 	if err != nil {
 		return nil, err
@@ -70,7 +73,7 @@ func (ur *userRepo) GetAllUsers() ([]entities.User, error) {
 	var users []entities.User
 
 	// Iterate and decode
-	err = cursor.All(ur.ctx, &users)
+	err = cursor.All(ctx, &users)
 
 	if err != nil {
 		return nil, err
@@ -80,11 +83,16 @@ func (ur *userRepo) GetAllUsers() ([]entities.User, error) {
 }
 
 func (ur *userRepo) GetUserById(userId string) (*entities.User, error) {
+
+	// Creating context
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+
+	defer cancel()
 	// Creating query
 	query := bson.D{{Key: "_id", Value: userId}}
 
 	// Querying
-	result := ur.db.FindOne(ur.ctx, query)
+	result := ur.db.FindOne(ctx, query)
 
 	// Converting to user entity
 	foundUser := new(entities.User)
