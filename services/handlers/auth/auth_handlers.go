@@ -29,10 +29,21 @@ func (authHandler *auth_http_handler) login(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+
+	// Finally, we set the client cookie for "token" as the JWT we just generated
+	// we also set an expiry time which is the same as the token itself
+	http.SetCookie(w, &http.Cookie{
+		Name: "token",
+		Value: loginResults.TokenString,
+		Expires: loginResults.ExpirationTime,
+	})
+
 	jsonWriter.Encode(loginResults)
 }
 
 func (authHandler *auth_http_handler) InitRoutes(mux *mux.Router) {
+	subRouter := mux.PathPrefix("").Subrouter()
+
 	// Generate routes
-	mux.HandleFunc("/login", authHandler.login).Methods("POST")
+	subRouter.HandleFunc("/login", authHandler.login).Methods("POST")
 }
