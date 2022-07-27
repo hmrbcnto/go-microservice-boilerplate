@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hmrbcnto/go-net-http/entities"
+	"github.com/hmrbcnto/go-net-http/middlewares"
 )
 
 func (userHandler *user_http_handler) createUser(w http.ResponseWriter, r *http.Request) {
@@ -66,8 +67,11 @@ func (userHandler *user_http_handler) getUserById(w http.ResponseWriter, r *http
 }
 
 func (userHandler *user_http_handler) InitRoutes(mux *mux.Router) {
+	subRouter := mux.PathPrefix("").Subrouter()
+
 	// Generate routes
-	mux.HandleFunc("/users", userHandler.getAllUsers).Methods("GET")
-	mux.HandleFunc("/users/id", userHandler.getUserById).Methods("GET")
-	mux.HandleFunc("/users", userHandler.createUser).Methods("POST")
+	subRouter.Use(middlewares.CheckForToken)
+	subRouter.HandleFunc("/users", userHandler.getAllUsers).Methods("GET")
+	subRouter.HandleFunc("/users/id", userHandler.getUserById).Methods("GET")
+	subRouter.HandleFunc("/users", userHandler.createUser).Methods("POST")
 }
